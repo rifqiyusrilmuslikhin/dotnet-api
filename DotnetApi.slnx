@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/DotnetApi.Api/DotnetApi.Api.csproj" />
+    <Project Path="src/DotnetApi.Domain/DotnetApi.Domain.csproj" />
   </Folder>
 </Solution>
