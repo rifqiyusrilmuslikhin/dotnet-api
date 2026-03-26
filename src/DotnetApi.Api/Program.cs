@@ -1,27 +1,17 @@
 using DotnetApi.Application.Extensions;
-using System.Reflection;
+using DotnetApi.Infrastructure.Extensions; 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+// Register Application services (MediatR, Validators, Behaviors)
 builder.Services.AddApplication(builder.Configuration);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new()
-    {
-        Title = "DotnetApi",
-        Version = "v1",
-        Description = "A clean architecture ASP.NET Core Web API",
-    });
-
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    options.IncludeXmlComments(xmlPath);
-});
+// Register Infrastructure services (PostgreSQL DbContext, Repositories)
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -29,11 +19,9 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    app.UseSwaggerUI(options => 
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "DotnetApi v1");
-        options.RoutePrefix = "swagger";
+        options.SwaggerEndpoint("/openapi/v1.json", "v1");
     });
 }
 

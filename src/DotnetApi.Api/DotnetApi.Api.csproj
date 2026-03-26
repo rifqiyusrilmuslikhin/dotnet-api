@@ -10,11 +10,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotnetApi.Application\DotnetApi.Application.csproj" />
+    <ProjectReference Include="..\DotnetApi.Infrastructure\DotnetApi.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
