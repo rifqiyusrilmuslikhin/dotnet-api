@@ -1,32 +1,24 @@
-using DotnetApi.Application.Extensions;
-using DotnetApi.Infrastructure.Extensions; 
+using DotnetApi.Api.Extensions;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+SerilogExtensions.AddBootstrapLogger();
 
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
-
-// Register Application services (MediatR, Validators, Behaviors)
-builder.Services.AddApplication(builder.Configuration);
-
-// Register Infrastructure services (PostgreSQL DbContext, Repositories)
-builder.Services.AddInfrastructureServices(builder.Configuration);
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.MapOpenApi();
-    app.UseSwaggerUI(options => 
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
-    });
+    var builder = WebApplication.CreateBuilder(args);
+    builder.AddServices();
+
+    var app = builder.Build();
+    app.ConfigurePipeline();
+
+    app.Run();
+}
+catch (Exception ex) when (ex is not HostAbortedException)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
-app.UseHttpsRedirection();
-
-app.MapControllers();
-
-app.Run();

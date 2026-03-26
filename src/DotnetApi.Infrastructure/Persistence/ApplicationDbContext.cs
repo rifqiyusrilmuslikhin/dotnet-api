@@ -1,3 +1,4 @@
+using DotnetApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotnetApi.Infrastructure.Persistence;
@@ -8,6 +9,8 @@ public class ApplicationDbContext : DbContext
         : base(options)
     {
     }
+
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

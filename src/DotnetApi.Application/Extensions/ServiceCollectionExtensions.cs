@@ -1,4 +1,7 @@
+using DotnetApi.Application.Common.Behaviors;
 using DotnetApi.Application.Features.HealthCheck.Options;
+using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,6 +18,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly));
+
+        services.AddValidatorsFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
+
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
         services.Configure<HealthCheckOptions>(
             configuration.GetSection(HealthCheckOptions.SectionName));
