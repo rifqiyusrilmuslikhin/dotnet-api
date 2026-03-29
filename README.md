@@ -22,16 +22,6 @@ dotnet run --project src/DotnetApi.Api
 
 The API will be available at `https://localhost:5161`. Access the interactive Swagger documentation at `/swagger`.
 
-## Testing
-
-Execute the comprehensive test suite with:
-
-```bash
-dotnet test DotnetApi.slnx
-```
-
-**Expected Result:** 85 tests passing across all layers (Domain, Application, Infrastructure).
-
 ## Architecture
 
 This project follows **Clean Architecture** principles with strict separation of concerns:
@@ -53,7 +43,6 @@ tests/
 
 - **JWT Authentication** — Secure token-based authentication with refresh token support
 - **User Management** — Complete CRUD operations with email validation
-- **Role-Based Access** — User roles and permissions management
 - **File Upload** — Avatar upload with local file storage service
 - **Password Security** — BCrypt hashing with verification
 - **Request Validation** — FluentValidation for robust input validation
@@ -117,7 +106,3 @@ Features/
 ## License
 
 MIT
-
-## Documentation
-
-For a comprehensive overview of the architecture, design decisions, and technical implementation details, refer to `ARCHITECTURE.md`.
