@@ -18,6 +18,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddOpenApi();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
+        builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddApplication(builder.Configuration);
         builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -42,6 +43,7 @@ public static class WebApplicationBuilderExtensions
         app.UseExceptionHandler();
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection();
+        app.UseStaticFiles();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

@@ -42,5 +42,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.UpdatedAt)
             .HasColumnName("updated_at")
             .IsRequired(false);
+
+        builder.Property(u => u.Avatar)
+            .HasColumnName("avatar")
+            .HasMaxLength(512)
+            .IsRequired(false);
     }
 }

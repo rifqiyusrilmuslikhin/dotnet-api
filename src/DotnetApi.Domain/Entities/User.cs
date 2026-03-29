@@ -13,6 +13,7 @@ public class User
     public string Password { get; private set; } = null!;
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
+    public string? Avatar { get; private set; }
 
     // EF Core constructor
     private User() { }
@@ -48,6 +49,12 @@ public class User
         ArgumentException.ThrowIfNullOrWhiteSpace(newPasswordHash);
 
         Password = newPasswordHash;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateAvatar(string? avatarPath)
+    {
+        Avatar = avatarPath;
         UpdatedAt = DateTime.UtcNow;
     }
 }

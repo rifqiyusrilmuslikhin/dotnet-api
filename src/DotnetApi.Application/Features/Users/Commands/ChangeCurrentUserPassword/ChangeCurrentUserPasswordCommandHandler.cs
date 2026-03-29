@@ -3,17 +3,17 @@ using DotnetApi.Domain.Exceptions;
 using DotnetApi.Domain.Interfaces;
 using MediatR;
 
-namespace DotnetApi.Application.Features.Users.Commands.ChangePassword;
+namespace DotnetApi.Application.Features.Users.Commands.ChangeCurrentUserPassword;
 
 /// <summary>
-/// Handles changing a user's password
+/// Handles changing the currently authenticated user's password
 /// </summary>
-public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand>
+public class ChangeCurrentUserPasswordCommandHandler : IRequestHandler<ChangeCurrentUserPasswordCommand>
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
 
-    public ChangePasswordCommandHandler(
+    public ChangeCurrentUserPasswordCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher)
     {
@@ -22,10 +22,10 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
     }
 
     /// <inheritdoc/>
-    public async Task Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+    public async Task Handle(ChangeCurrentUserPasswordCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken)
-            ?? throw new NotFoundException(nameof(Domain.Entities.User), request.Id);
+        var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Domain.Entities.User), request.UserId);
 
         var isCurrentPasswordValid = _passwordHasher.Verify(request.CurrentPassword, user.Password);
         if (!isCurrentPasswordValid)

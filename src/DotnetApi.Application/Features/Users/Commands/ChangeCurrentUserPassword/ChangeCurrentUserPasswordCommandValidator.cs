@@ -1,14 +1,11 @@
 using FluentValidation;
 
-namespace DotnetApi.Application.Features.Users.Commands.ChangePassword;
+namespace DotnetApi.Application.Features.Users.Commands.ChangeCurrentUserPassword;
 
-public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCommand>
+public class ChangeCurrentUserPasswordCommandValidator : AbstractValidator<ChangeCurrentUserPasswordCommand>
 {
-    public ChangePasswordCommandValidator()
+    public ChangeCurrentUserPasswordCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .GreaterThan(0).WithMessage("User ID must be valid.");
-
         RuleFor(x => x.CurrentPassword)
             .NotEmpty().WithMessage("Current password is required.");
 

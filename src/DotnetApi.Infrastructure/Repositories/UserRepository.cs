@@ -33,14 +33,6 @@ public class UserRepository : IUserRepository
             .AnyAsync(u => u.Email == email.ToLowerInvariant(), cancellationToken);
     }
 
-    public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.Users
-            .AsNoTracking()
-            .OrderBy(u => u.Id)
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task<User> AddAsync(User user, CancellationToken cancellationToken = default)
     {
         await _context.Users.AddAsync(user, cancellationToken);

@@ -48,9 +48,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IHealthCheckService, HealthCheckService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         // JWT options
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+
+        // File storage options
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
 
         // Authentication & Authorization
         var jwtSecret = configuration["Jwt:SecretKey"]

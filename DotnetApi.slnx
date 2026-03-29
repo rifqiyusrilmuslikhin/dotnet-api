@@ -5,4 +5,9 @@
     <Project Path="src/DotnetApi.Domain/DotnetApi.Domain.csproj" />
     <Project Path="src/DotnetApi.Infrastructure/DotnetApi.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DotnetApi.Application.Tests/DotnetApi.Application.Tests.csproj" />
+    <Project Path="tests/DotnetApi.Domain.Tests/DotnetApi.Domain.Tests.csproj" />
+    <Project Path="tests/DotnetApi.Infrastructure.Tests/DotnetApi.Infrastructure.Tests.csproj" />
+  </Folder>
 </Solution>
