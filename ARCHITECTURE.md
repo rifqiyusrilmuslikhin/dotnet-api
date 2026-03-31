@@ -113,6 +113,7 @@ tests/
 │   └── Features/
 │       ├── Auth/
 │       │   └── Commands/
+│       │       ├── GoogleLogin/  # Handler + Validator tests
 │       │       ├── Login/      # Handler + Validator tests
 │       │       └── Register/   # Handler + Validator tests
 │       └── Users/
@@ -125,7 +126,7 @@ tests/
 │
 └── DotnetApi.Infrastructure.Tests/
     ├── Repositories/       # UserRepository tests (EF InMemory)
-    └── Services/           # JwtTokenService, PasswordHasher, LocalFileStorageService tests
+    └── Services/           # JwtTokenService, PasswordHasher, GoogleTokenValidator, LocalFileStorageService tests
 ```
 
 ---
@@ -231,31 +232,61 @@ namespace DotnetApi.Api.Extensions;
 Entities have no public setters. All state changes are done through methods.
 
 ```csharp
+// ─── User (profile only) ──────────────────────────────────────────────────
 public class User
 {
     public int Id { get; private set; }
     public string Email { get; private set; } = null!;
     public string FullName { get; private set; } = null!;
-    public string Password { get; private set; } = null!;
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
+    public string? Avatar { get; private set; }
+
+    // Navigation — a user can have multiple auth accounts (Local, Google, ...)
+    public IReadOnlyCollection<UserAccount> Accounts { get; private set; } = [];
 
     // EF Core constructor — always private
     private User() { }
 
     // Factory method — the only way to create an entity
-    public static User Create(string email, string fullName, string password)
+    public static User Create(string email, string fullName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
         // domain validation...
         return new User { ... };
     }
 
-    // Domain method — the only way to change state
+    // Domain methods — the only way to change state
     public void UpdateProfile(string fullName) { ... }
-    public void UpdatePassword(string newPasswordHash) { ... }
+    public void UpdateAvatar(string? path) { ... }
+}
+
+// ─── UserAccount (auth credentials) ──────────────────────────────────────
+// Represents an authentication account linked to a user.
+// A single User can have multiple accounts (e.g., local + Google).
+public class UserAccount
+{
+    public int Id { get; private set; }
+    public int UserId { get; private set; }
+    public AuthProvider Provider { get; private set; }      // Local = 0, Google = 1
+    public string ProviderKey { get; private set; } = null!; // email for Local, Google sub for Google
+    public string? PasswordHash { get; private set; }       // only set for Local provider
+    public DateTime CreatedAt { get; private set; }
+    public DateTime? UpdatedAt { get; private set; }
+    public User User { get; private set; } = null!;         // navigation
+
+    private UserAccount() { }
+
+    public static UserAccount CreateLocal(int userId, string email, string passwordHash) { ... }
+    public static UserAccount CreateOAuth(int userId, AuthProvider provider, string providerKey) { ... }
+    public void UpdatePassword(string newPasswordHash) { ... } // Local only; throws if not Local
 }
 ```
+
+**Design rationale:**
+- `User` holds profile data; no password stored on the user.
+- `UserAccount` holds credentials; supports multiple providers per user.
+- Adding a new OAuth provider (e.g., GitHub) requires no schema changes to `users`.
 
 **Rules:**
 - Always include a `private` constructor for EF Core
@@ -273,6 +304,16 @@ public interface IUserRepository
     Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<User> AddAsync(User user, CancellationToken cancellationToken = default);
     Task<User> UpdateAsync(User user, CancellationToken cancellationToken = default);
+}
+
+public interface IUserAccountRepository
+{
+    // Get by provider + provider key (e.g., Local + "john@example.com")
+    Task<UserAccount?> GetByProviderAsync(AuthProvider provider, string providerKey, CancellationToken ct = default);
+    // Get the Local account for a user (for password changes)
+    Task<UserAccount?> GetLocalByUserIdAsync(int userId, CancellationToken ct = default);
+    Task<UserAccount> AddAsync(UserAccount account, CancellationToken ct = default);
+    Task<UserAccount> UpdateAsync(UserAccount account, CancellationToken ct = default);
 }
 ```
 

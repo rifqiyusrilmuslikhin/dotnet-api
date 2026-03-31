@@ -6,18 +6,24 @@ using DotnetApi.Application.Common.Exceptions;
 using Shouldly;
 using NSubstitute;
 
+using RefreshTokenEntity = DotnetApi.Domain.Entities.RefreshToken;
+
 namespace DotnetApi.Application.Tests.Features.Auth.Commands.Register;
 
 public class RegisterCommandHandlerTests
 {
     private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
+    private readonly IUserAccountRepository _userAccountRepository = Substitute.For<IUserAccountRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly IJwtTokenService _jwtTokenService = Substitute.For<IJwtTokenService>();
+    private readonly IRefreshTokenRepository _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
     private readonly RegisterCommandHandler _sut;
 
     public RegisterCommandHandlerTests()
     {
-        _sut = new RegisterCommandHandler(_userRepository, _passwordHasher, _jwtTokenService);
+        _sut = new RegisterCommandHandler(
+            _userRepository, _userAccountRepository, _passwordHasher,
+            _jwtTokenService, _refreshTokenRepository);
     }
 
     private static RegisterCommand ValidCommand() => new(
@@ -27,21 +33,28 @@ public class RegisterCommandHandlerTests
         ConfirmPassword: "Password1"
     );
 
+    private void SetupDefaults(RegisterCommand command)
+    {
+        var user = UserFactory.Create(id: 1, email: command.Email, fullName: command.FullName);
+        var account = UserAccountFactory.CreateLocal(userId: 1, email: command.Email);
+
+        _userRepository.ExistsByEmailAsync(command.Email, Arg.Any<CancellationToken>()).Returns(false);
+        _passwordHasher.Hash(command.Password).Returns("hashed_password");
+        _userRepository.AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(user);
+        _userAccountRepository.AddAsync(Arg.Any<UserAccount>(), Arg.Any<CancellationToken>()).Returns(account);
+        _jwtTokenService.GenerateToken(Arg.Any<User>()).Returns("jwt_token");
+        _jwtTokenService.GenerateRefreshToken().Returns("refresh_token_value");
+        _jwtTokenService.RefreshTokenExpiresInDays.Returns(7);
+        _refreshTokenRepository.AddAsync(Arg.Any<RefreshTokenEntity>(), Arg.Any<CancellationToken>())
+            .Returns(ci => ci.Arg<RefreshTokenEntity>());
+    }
+
     [Fact]
     public async Task Handle_WithNewEmail_ShouldReturnAuthResponse()
     {
         // Arrange
         var command = ValidCommand();
-        var user = UserFactory.Create(id: 1, email: command.Email, fullName: command.FullName);
-
-        _userRepository.ExistsByEmailAsync(command.Email, Arg.Any<CancellationToken>())
-            .Returns(false);
-        _passwordHasher.Hash(command.Password)
-            .Returns("hashed_password");
-        _userRepository.AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
-            .Returns(user);
-        _jwtTokenService.GenerateToken(Arg.Any<User>())
-            .Returns("jwt_token");
+        SetupDefaults(command);
 
         // Act
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -49,6 +62,7 @@ public class RegisterCommandHandlerTests
         // Assert
         result.AccessToken.ShouldBe("jwt_token");
         result.TokenType.ShouldBe("Bearer");
+        result.RefreshToken.ShouldBe("refresh_token_value");
         result.Email.ShouldBe(command.Email);
         result.FullName.ShouldBe(command.FullName);
     }
@@ -73,18 +87,27 @@ public class RegisterCommandHandlerTests
     {
         // Arrange
         var command = ValidCommand();
-        var user = UserFactory.Create(email: command.Email, fullName: command.FullName);
-
-        _userRepository.ExistsByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(false);
-        _passwordHasher.Hash(command.Password).Returns("hashed_password");
-        _userRepository.AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(user);
-        _jwtTokenService.GenerateToken(Arg.Any<User>()).Returns("token");
+        SetupDefaults(command);
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
 
-        // Assert — password hasher harus dipanggil
+        // Assert
         _passwordHasher.Received(1).Hash(command.Password);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPersistRefreshToken()
+    {
+        // Arrange
+        var command = ValidCommand();
+        SetupDefaults(command);
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await _refreshTokenRepository.Received(1).AddAsync(
+            Arg.Any<RefreshTokenEntity>(), Arg.Any<CancellationToken>());
     }
 }

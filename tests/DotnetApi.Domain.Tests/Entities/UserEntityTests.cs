@@ -11,11 +11,10 @@ public class UserEntityTests
     [Fact]
     public void Create_WithValidData_ShouldReturnUser()
     {
-        var user = User.Create("john@example.com", "John Doe", "HashedPass123");
+        var user = User.Create("john@example.com", "John Doe");
 
         user.Email.ShouldBe("john@example.com");
         user.FullName.ShouldBe("John Doe");
-        user.Password.ShouldBe("HashedPass123");
         user.CreatedAt.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow.AddSeconds(5));
         user.UpdatedAt.ShouldBeNull();
         user.Avatar.ShouldBeNull();
@@ -24,7 +23,7 @@ public class UserEntityTests
     [Fact]
     public void Create_ShouldNormalizeEmailToLowercase()
     {
-        var user = User.Create("JOHN@EXAMPLE.COM", "John Doe", "HashedPass123");
+        var user = User.Create("JOHN@EXAMPLE.COM", "John Doe");
 
         user.Email.ShouldBe("john@example.com");
     }
@@ -34,7 +33,7 @@ public class UserEntityTests
     [InlineData("  ")]
     public void Create_WithEmptyEmail_ShouldThrowArgumentException(string email)
     {
-        var act = () => User.Create(email, "John Doe", "HashedPass123");
+        var act = () => User.Create(email, "John Doe");
 
         Should.Throw<ArgumentException>(act);
     }
@@ -44,7 +43,7 @@ public class UserEntityTests
     [InlineData("  ")]
     public void Create_WithEmptyFullName_ShouldThrowArgumentException(string fullName)
     {
-        var act = () => User.Create("john@example.com", fullName, "HashedPass123");
+        var act = () => User.Create("john@example.com", fullName);
 
         Should.Throw<ArgumentException>(act);
     }
@@ -52,7 +51,7 @@ public class UserEntityTests
     [Fact]
     public void Create_WithInvalidEmail_ShouldThrowDomainException()
     {
-        var act = () => User.Create("not-an-email", "John Doe", "HashedPass123");
+        var act = () => User.Create("not-an-email", "John Doe");
 
         var ex = Should.Throw<DomainException>(act);
         ex.Message.ToLower().ShouldContain("email");
@@ -63,7 +62,7 @@ public class UserEntityTests
     [Fact]
     public void UpdateProfile_WithValidName_ShouldUpdateFullName()
     {
-        var user = User.Create("john@example.com", "John Doe", "HashedPass123");
+        var user = User.Create("john@example.com", "John Doe");
 
         user.UpdateProfile("Jane Smith");
 
@@ -77,34 +76,9 @@ public class UserEntityTests
     [InlineData("  ")]
     public void UpdateProfile_WithEmptyName_ShouldThrowArgumentException(string fullName)
     {
-        var user = User.Create("john@example.com", "John Doe", "HashedPass123");
+        var user = User.Create("john@example.com", "John Doe");
 
         var act = () => user.UpdateProfile(fullName);
-
-        Should.Throw<ArgumentException>(act);
-    }
-
-    // ─── UpdatePassword ───────────────────────────────────────────────────────
-
-    [Fact]
-    public void UpdatePassword_WithValidHash_ShouldUpdatePassword()
-    {
-        var user = User.Create("john@example.com", "John Doe", "OldHash");
-
-        user.UpdatePassword("NewHash");
-
-        user.Password.ShouldBe("NewHash");
-        user.UpdatedAt.ShouldNotBeNull();
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("  ")]
-    public void UpdatePassword_WithEmptyHash_ShouldThrowArgumentException(string hash)
-    {
-        var user = User.Create("john@example.com", "John Doe", "OldHash");
-
-        var act = () => user.UpdatePassword(hash);
 
         Should.Throw<ArgumentException>(act);
     }
@@ -114,7 +88,7 @@ public class UserEntityTests
     [Fact]
     public void UpdateAvatar_WithValidPath_ShouldSetAvatar()
     {
-        var user = User.Create("john@example.com", "John Doe", "HashedPass123");
+        var user = User.Create("john@example.com", "John Doe");
 
         user.UpdateAvatar("/uploads/avatars/1_abc.jpg");
 
@@ -125,7 +99,7 @@ public class UserEntityTests
     [Fact]
     public void UpdateAvatar_WithNull_ShouldClearAvatar()
     {
-        var user = User.Create("john@example.com", "John Doe", "HashedPass123");
+        var user = User.Create("john@example.com", "John Doe");
         user.UpdateAvatar("/uploads/avatars/1_abc.jpg");
 
         user.UpdateAvatar(null);
@@ -133,3 +107,4 @@ public class UserEntityTests
         user.Avatar.ShouldBeNull();
     }
 }
+

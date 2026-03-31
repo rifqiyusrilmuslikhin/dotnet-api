@@ -43,18 +43,24 @@ public static class ServiceCollectionExtensions
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         // Services
         services.AddScoped<IHealthCheckService, HealthCheckService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
 
         // JWT options
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 
         // File storage options
         services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
+
+        // Google Auth options
+        services.Configure<GoogleAuthOptions>(configuration.GetSection(GoogleAuthOptions.SectionName));
 
         // Authentication & Authorization
         var jwtSecret = configuration["Jwt:SecretKey"]

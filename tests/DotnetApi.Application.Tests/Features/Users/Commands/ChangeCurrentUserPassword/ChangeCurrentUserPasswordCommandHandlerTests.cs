@@ -6,18 +6,20 @@ using DotnetApi.Domain.Tests.Helpers;
 using Shouldly;
 using NSubstitute;
 using User = DotnetApi.Domain.Entities.User;
+using UserAccount = DotnetApi.Domain.Entities.UserAccount;
 
 namespace DotnetApi.Application.Tests.Features.Users.Commands.ChangeCurrentUserPassword;
 
 public class ChangeCurrentUserPasswordCommandHandlerTests
 {
     private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
+    private readonly IUserAccountRepository _userAccountRepository = Substitute.For<IUserAccountRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly ChangeCurrentUserPasswordCommandHandler _sut;
 
     public ChangeCurrentUserPasswordCommandHandlerTests()
     {
-        _sut = new ChangeCurrentUserPasswordCommandHandler(_userRepository, _passwordHasher);
+        _sut = new ChangeCurrentUserPasswordCommandHandler(_userRepository, _userAccountRepository, _passwordHasher);
     }
 
     private static ChangeCurrentUserPasswordCommand ValidCommand(int userId = 1) => new(
@@ -31,19 +33,21 @@ public class ChangeCurrentUserPasswordCommandHandlerTests
     public async Task Handle_WithCorrectCurrentPassword_ShouldUpdatePassword()
     {
         // Arrange
-        var user = UserFactory.Create(id: 1, password: "hashed_old");
+        var user = UserFactory.Create(id: 1);
+        var account = UserAccountFactory.CreateLocal(userId: 1, email: "test@example.com", passwordHash: "hashed_old");
         var command = ValidCommand(userId: 1);
 
         _userRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(user);
-        _passwordHasher.Verify(command.CurrentPassword, user.Password).Returns(true);
+        _userAccountRepository.GetLocalByUserIdAsync(1, Arg.Any<CancellationToken>()).Returns(account);
+        _passwordHasher.Verify(command.CurrentPassword, account.PasswordHash!).Returns(true);
         _passwordHasher.Hash(command.NewPassword).Returns("hashed_new");
-        _userRepository.UpdateAsync(user, Arg.Any<CancellationToken>()).Returns(user);
+        _userAccountRepository.UpdateAsync(account, Arg.Any<CancellationToken>()).Returns(account);
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await _userRepository.Received(1).UpdateAsync(user, Arg.Any<CancellationToken>());
+        await _userAccountRepository.Received(1).UpdateAsync(account, Arg.Any<CancellationToken>());
         _passwordHasher.Received(1).Hash(command.NewPassword);
     }
 
@@ -52,7 +56,10 @@ public class ChangeCurrentUserPasswordCommandHandlerTests
     {
         // Arrange
         var user = UserFactory.Create(id: 1);
+        var account = UserAccountFactory.CreateLocal(userId: 1);
+
         _userRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(user);
+        _userAccountRepository.GetLocalByUserIdAsync(1, Arg.Any<CancellationToken>()).Returns(account);
         _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
 
         var act = () => _sut.Handle(ValidCommand(), CancellationToken.None);
@@ -73,5 +80,22 @@ public class ChangeCurrentUserPasswordCommandHandlerTests
 
         // Assert
         await Should.ThrowAsync<NotFoundException>(act);
+    }
+
+    [Fact]
+    public async Task Handle_WithNoLocalAccount_ShouldThrowValidationException()
+    {
+        // Arrange
+        var user = UserFactory.Create(id: 1);
+
+        _userRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(user);
+        _userAccountRepository.GetLocalByUserIdAsync(1, Arg.Any<CancellationToken>())
+            .Returns((UserAccount?)null);
+
+        var act = () => _sut.Handle(ValidCommand(), CancellationToken.None);
+
+        // Assert
+        await Should.ThrowAsync<ValidationException>(act)
+            .ContinueWith(t => t.Result.Message.ShouldContain("local password"));
     }
 }

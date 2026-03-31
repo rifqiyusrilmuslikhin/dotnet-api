@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace DotnetApi.Infrastructure.Services;
@@ -14,6 +15,9 @@ public class JwtTokenService : IJwtTokenService
     private readonly string _issuer;
     private readonly string _audience;
     private readonly int _expiresInSeconds;
+    private readonly int _refreshTokenExpiresInDays;
+
+    public int RefreshTokenExpiresInDays => _refreshTokenExpiresInDays;
 
     public JwtTokenService(IConfiguration configuration)
     {
@@ -23,6 +27,8 @@ public class JwtTokenService : IJwtTokenService
         _audience = configuration["Jwt:Audience"] ?? "DotnetApi";
         _expiresInSeconds = int.TryParse(configuration["Jwt:ExpiresInSeconds"], out var exp)
             ? exp : 3600;
+        _refreshTokenExpiresInDays = int.TryParse(configuration["Jwt:RefreshTokenExpiresInDays"], out var rtExp)
+            ? rtExp : 7;
     }
 
     public string GenerateToken(User user)
@@ -50,5 +56,13 @@ public class JwtTokenService : IJwtTokenService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public string GenerateRefreshToken()
+    {
+        var randomBytes = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
     }
 }

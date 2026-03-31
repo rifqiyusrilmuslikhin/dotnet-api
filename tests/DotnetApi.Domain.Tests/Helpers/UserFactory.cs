@@ -12,10 +12,9 @@ public static class UserFactory
         int id = 1,
         string email = "test@example.com",
         string fullName = "Test User",
-        string password = "hashed_password",
         string? avatar = null)
     {
-        var user = User.Create(email, fullName, password);
+        var user = User.Create(email, fullName);
 
         // Set Id via reflection (private set)
         typeof(User)

@@ -30,11 +30,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(256)
             .IsRequired();
 
-        builder.Property(u => u.Password)
-            .HasColumnName("password")
-            .HasMaxLength(512)
-            .IsRequired();
-
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();

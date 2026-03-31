@@ -26,7 +26,7 @@ public class UserRepositoryTests : IDisposable
     [Fact]
     public async Task AddAsync_ShouldPersistUser()
     {
-        var user = User.Create("john@example.com", "John Doe", "hashed");
+        var user = User.Create("john@example.com", "John Doe");
 
         var saved = await _sut.AddAsync(user);
 
@@ -40,7 +40,7 @@ public class UserRepositoryTests : IDisposable
     [Fact]
     public async Task GetByIdAsync_WithExistingId_ShouldReturnUser()
     {
-        var user = User.Create("john@example.com", "John Doe", "hashed");
+        var user = User.Create("john@example.com", "John Doe");
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
 
@@ -63,7 +63,7 @@ public class UserRepositoryTests : IDisposable
     [Fact]
     public async Task GetByEmailAsync_WithExistingEmail_ShouldReturnUser()
     {
-        var user = User.Create("john@example.com", "John Doe", "hashed");
+        var user = User.Create("john@example.com", "John Doe");
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
 
@@ -85,7 +85,7 @@ public class UserRepositoryTests : IDisposable
     [Fact]
     public async Task ExistsByEmailAsync_WithExistingEmail_ShouldReturnTrue()
     {
-        var user = User.Create("john@example.com", "John Doe", "hashed");
+        var user = User.Create("john@example.com", "John Doe");
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
 
@@ -107,7 +107,7 @@ public class UserRepositoryTests : IDisposable
     [Fact]
     public async Task UpdateAsync_ShouldPersistChanges()
     {
-        var user = User.Create("john@example.com", "Old Name", "hashed");
+        var user = User.Create("john@example.com", "Old Name");
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
 

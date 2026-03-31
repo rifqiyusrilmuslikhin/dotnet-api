@@ -3,26 +3,29 @@ using DotnetApi.Domain.Exceptions;
 namespace DotnetApi.Domain.Entities;
 
 /// <summary>
-/// Represents an application user
+/// Represents an application user (identity/profile only).
+/// Authentication credentials are stored separately in <see cref="UserAccount"/>.
 /// </summary>
 public class User
 {
     public int Id { get; private set; }
     public string Email { get; private set; } = null!;
     public string FullName { get; private set; } = null!;
-    public string Password { get; private set; } = null!;
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     public string? Avatar { get; private set; }
 
+    // Navigation
+    public IReadOnlyCollection<UserAccount> Accounts { get; private set; } = new List<UserAccount>();
+    public IReadOnlyCollection<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
+
     // EF Core constructor
     private User() { }
 
-    public static User Create(string email, string fullName, string password)
+    public static User Create(string email, string fullName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
         ArgumentException.ThrowIfNullOrWhiteSpace(fullName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
         if (!email.Contains('@'))
             throw new DomainException("Email format is invalid.");
@@ -31,7 +34,6 @@ public class User
         {
             Email = email.Trim().ToLowerInvariant(),
             FullName = fullName.Trim(),
-            Password = password,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -41,14 +43,6 @@ public class User
         ArgumentException.ThrowIfNullOrWhiteSpace(fullName);
 
         FullName = fullName.Trim();
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void UpdatePassword(string newPasswordHash)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(newPasswordHash);
-
-        Password = newPasswordHash;
         UpdatedAt = DateTime.UtcNow;
     }
 
