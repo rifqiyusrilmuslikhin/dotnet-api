@@ -3,8 +3,8 @@ using DotnetApi.Domain.Entities;
 namespace DotnetApi.Domain.Tests.Helpers;
 
 /// <summary>
-/// Factory untuk membuat test instance dari User entity
-/// karena constructor-nya private dan semua setter private
+/// Factory for creating test instances of the User entity.
+/// Uses reflection to set private properties since the constructor and all setters are private.
 /// </summary>
 public static class UserFactory
 {

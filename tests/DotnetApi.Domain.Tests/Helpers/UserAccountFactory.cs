@@ -4,7 +4,8 @@ using DotnetApi.Domain.Enums;
 namespace DotnetApi.Domain.Tests.Helpers;
 
 /// <summary>
-/// Factory untuk membuat test instance dari UserAccount entity
+/// Factory for creating test instances of the UserAccount entity.
+/// Uses reflection to set private properties since the constructor and all setters are private.
 /// </summary>
 public static class UserAccountFactory
 {

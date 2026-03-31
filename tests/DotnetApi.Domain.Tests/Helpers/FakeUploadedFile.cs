@@ -3,7 +3,7 @@ using DotnetApi.Domain.Interfaces;
 namespace DotnetApi.Domain.Tests.Helpers;
 
 /// <summary>
-/// Fake implementation of IUploadedFile untuk testing tanpa dependency ke IFormFile
+/// Fake implementation of IUploadedFile for testing purposes, without a dependency on IFormFile.
 /// </summary>
 public sealed class FakeUploadedFile : IUploadedFile
 {
